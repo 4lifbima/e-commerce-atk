@@ -283,8 +283,8 @@ toko-atk-fotocopy/
 ## 📞 Support
 
 Jika ada pertanyaan atau issue:
-- Email: support@copyatk.com
-- WhatsApp: 0812-3456-7890
+- Email: alif67916@gmail.com
+- WhatsApp: 0822-9138-3797
 
 ## 📝 License
 
@@ -292,7 +292,7 @@ MIT License - Free to use untuk project komersial maupun personal
 
 ## 👨‍💻 Developer
 
-Developed with ❤️ by Your Name
+Developed with ❤️ by Alif Bima Pradana
 
 ---
 
