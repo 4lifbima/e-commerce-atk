@@ -49,6 +49,14 @@ if (!isset($activePage)) {
             <span>Kelola Produk</span>
         </a>
 
+        <!-- Kupon -->
+        <a href="kupon.php"
+           class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+           <?= $activePage === 'kupon' ? 'bg-blue-600' : 'hover:bg-blue-600' ?>">
+            <i class="fas fa-ticket-alt w-5"></i>
+            <span>Kelola Kupon</span>
+        </a>
+
         <!-- Kategori -->
         <a href="kategori.php"
            class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
@@ -85,6 +93,14 @@ if (!isset($activePage)) {
            <?= $activePage === 'keuangan' ? 'bg-blue-600' : 'hover:bg-blue-600' ?>">
             <i class="fas fa-wallet w-5"></i>
             <span>Keuangan</span>
+        </a>
+
+        <!-- Laporan -->
+        <a href="laporan.php"
+           class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+           <?= $activePage === 'laporan' ? 'bg-blue-600' : 'hover:bg-blue-600' ?>">
+            <i class="fas fa-file-alt w-5"></i>
+            <span>Laporan</span>
         </a>
 
         <!-- Pengaturan -->

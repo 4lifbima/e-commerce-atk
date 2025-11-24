@@ -265,6 +265,30 @@ $flash = getFlash();
                             <?php endforeach; ?>
                         </div>
                         
+                        <!-- Kupon Promo -->
+                        <div class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <label class="block text-gray-700 font-semibold mb-2">
+                                <i class="fas fa-ticket-alt text-yellow-600 mr-2"></i>
+                                Punya Kode Kupon?
+                            </label>
+                            <div class="flex gap-2">
+                                <input 
+                                    type="text" 
+                                    id="kode_kupon_input"
+                                    name="kode_kupon"
+                                    placeholder="Masukkan kode kupon"
+                                    class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 uppercase"
+                                >
+                                <button 
+                                    type="button"
+                                    onclick="applyKupon()"
+                                    class="bg-yellow-600 text-white px-6 py-2 rounded-lg hover:bg-yellow-700 transition font-semibold">
+                                    Pakai
+                                </button>
+                            </div>
+                            <div id="kupon_message" class="mt-2 text-sm hidden"></div>
+                        </div>
+                        
                         <!-- Totals -->
                         <div class="border-t pt-4 space-y-2">
                             <div class="flex justify-between text-gray-600">
@@ -275,19 +299,26 @@ $flash = getFlash();
                                 <span>Ongkos Kirim</span>
                                 <span class="font-semibold text-green-600">GRATIS</span>
                             </div>
-                            <div class="flex justify-between text-gray-600">
-                                <span>Biaya Admin</span>
-                                <span class="font-semibold">Rp 0</span>
+                            <div id="diskon_row" class="flex justify-between text-gray-600 hidden">
+                                <span class="flex items-center">
+                                    <i class="fas fa-tag text-green-600 mr-2"></i>
+                                    Diskon Kupon <span id="kupon_code_display" class="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full"></span>
+                                </span>
+                                <span class="font-semibold text-green-600" id="diskon_amount">- Rp 0</span>
                             </div>
                             <div class="border-t pt-2 mt-2">
                                 <div class="flex justify-between items-center">
                                     <span class="text-lg font-bold text-gray-800">Total Pembayaran</span>
-                                    <span class="text-2xl font-bold text-purple-600">
+                                    <span class="text-2xl font-bold text-purple-600" id="total_pembayaran">
                                         Rp <?= number_format($cart_total, 0, ',', '.') ?>
                                     </span>
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Hidden fields for kupon -->
+                        <input type="hidden" id="kupon_id_hidden" name="kupon_id" value="">
+                        <input type="hidden" id="nilai_diskon_hidden" name="nilai_diskon" value="0">
                         
                         <!-- Submit Button -->
                         <button 
@@ -343,6 +374,106 @@ $flash = getFlash();
                 }
             });
         });
+        
+        // Kupon functionality
+        const cartTotal = <?= $cart_total ?>;
+        let appliedKupon = null;
+        
+        async function applyKupon() {
+            const kodeKupon = document.getElementById('kode_kupon_input').value.trim().toUpperCase();
+            const messageDiv = document.getElementById('kupon_message');
+            
+            if (!kodeKupon) {
+                showKuponMessage('Masukkan kode kupon terlebih dahulu!', 'error');
+                return;
+            }
+            
+            // Show loading
+            messageDiv.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Memvalidasi kupon...';
+            messageDiv.className = 'mt-2 text-sm text-blue-600';
+            messageDiv.classList.remove('hidden');
+            
+            try {
+                // Call API to validate kupon
+                const response = await fetch('validate-kupon.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `kode_kupon=${encodeURIComponent(kodeKupon)}&total_belanja=${cartTotal}`
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    appliedKupon = result.data;
+                    showKuponMessage(result.message, 'success');
+                    updateTotalWithDiskon();
+                    
+                    // Set hidden fields
+                    document.getElementById('kupon_id_hidden').value = appliedKupon.kupon_id;
+                    document.getElementById('nilai_diskon_hidden').value = appliedKupon.nilai_diskon;
+                    
+                    // Disable input setelah berhasil
+                    document.getElementById('kode_kupon_input').disabled = true;
+                } else {
+                    showKuponMessage(result.message, 'error');
+                    removeDiskon();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showKuponMessage('Terjadi kesalahan saat validasi kupon', 'error');
+                removeDiskon();
+            }
+        }
+        
+        function showKuponMessage(message, type) {
+            const messageDiv = document.getElementById('kupon_message');
+            messageDiv.textContent = message;
+            messageDiv.classList.remove('hidden');
+            
+            if (type === 'success') {
+                messageDiv.className = 'mt-2 text-sm text-green-600 font-semibold';
+            } else {
+                messageDiv.className = 'mt-2 text-sm text-red-600';
+            }
+        }
+        
+        function updateTotalWithDiskon() {
+            const diskonRow = document.getElementById('diskon_row');
+            const diskonAmount = document.getElementById('diskon_amount');
+            const kuponCodeDisplay = document.getElementById('kupon_code_display');
+            const totalPembayaran = document.getElementById('total_pembayaran');
+            
+            const nilaiDiskon = appliedKupon.nilai_diskon;
+            const totalSetelahDiskon = cartTotal - nilaiDiskon;
+            
+            // Show diskon row
+            diskonRow.classList.remove('hidden');
+            diskonAmount.textContent = '- Rp ' + formatNumber(nilaiDiskon);
+            kuponCodeDisplay.textContent = appliedKupon.kode_kupon;
+            
+            // Update total
+            totalPembayaran.textContent = 'Rp ' + formatNumber(totalSetelahDiskon);
+        }
+        
+        function removeDiskon() {
+            const diskonRow = document.getElementById('diskon_row');
+            const totalPembayaran = document.getElementById('total_pembayaran');
+            
+            diskonRow.classList.add('hidden');
+            totalPembayaran.textContent = 'Rp ' + formatNumber(cartTotal);
+            
+            // Clear hidden fields
+            document.getElementById('kupon_id_hidden').value = '';
+            document.getElementById('nilai_diskon_hidden').value = '0';
+            
+            appliedKupon = null;
+        }
+        
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
     </script>
 </body>
 </html>

@@ -54,6 +54,7 @@ $flash = getFlash();
     <title>Manajemen Produk - Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <?php include 'includes/admin-styles.php'; ?>
 </head>
 <body class="bg-gray-100">
     
@@ -61,7 +62,7 @@ $flash = getFlash();
     <?php include 'includes/sidebar.php'; ?>
     
     <!-- Main Content -->
-    <div class="ml-64 p-8">
+    <div class="main-content p-4 md:p-8">
         <!-- Header -->
         <div class="flex justify-between items-center mb-8">
             <div>

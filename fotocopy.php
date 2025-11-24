@@ -9,6 +9,17 @@ require_once 'config/session.php';
 
 $db = getDB();
 
+// Ambil data user jika sudah login
+$user_data = null;
+if (isLoggedIn()) {
+    $user_id = $_SESSION['user_id'];
+    $query_user = "SELECT * FROM users WHERE id = $user_id";
+    $result_user = $db->query($query_user);
+    if ($result_user && $result_user->num_rows > 0) {
+        $user_data = $result_user->fetch_assoc();
+    }
+}
+
 // Ambil data harga fotocopy
 $query_harga = "SELECT * FROM harga_fotocopy ORDER BY jenis_kertas, warna, bolak_balik";
 $harga_fotocopy = $db->query($query_harga);
@@ -172,23 +183,6 @@ $flash = getFlash();
                         <div>
                             <label class="block text-gray-700 font-semibold mb-2">Email</label>
                             <input type="email" name="email" 
-                                   value="<?= isLoggedIn() ? $_SESSION['email'] : '' ?>"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-semibold mb-2">No. Telepon *</label>
-                            <input type="tel" name="telepon" required 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-                                   placeholder="08123456789">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-semibold mb-2">Alamat *</label>
-                            <input type="text" name="alamat" required 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-                                   placeholder="Alamat lengkap">
-                        </div>
-                    </div>
-                </div>
                 
                 <!-- Spesifikasi Fotocopy -->
                 <div class="mb-8">

@@ -42,12 +42,13 @@ $fotocopy = $result_fotocopy->num_rows > 0 ? $result_fotocopy->fetch_assoc() : n
     <title>Detail Pesanan - Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <?php include 'includes/admin-styles.php'; ?>
 </head>
 <body class="bg-gray-100">
     
     <?php include 'includes/sidebar.php'; ?>
     
-    <div class="ml-64 p-8">
+    <div class="main-content p-4 md:p-8">
         <!-- Header -->
         <div class="mb-8">
             <div class="flex items-center justify-between mb-4">
@@ -60,13 +61,13 @@ $fotocopy = $result_fotocopy->num_rows > 0 ? $result_fotocopy->fetch_assoc() : n
                         <p class="text-gray-600">Kode: <?= $pesanan['kode_pesanan'] ?></p>
                     </div>
                 </div>
-                <button onclick="window.print()" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition">
+                <button onclick="window.print()" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition no-print">
                     <i class="fas fa-print mr-2"></i>Cetak Struk
                 </button>
             </div>
         </div>
         
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div id="printArea" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Info Pesanan -->
             <div class="lg:col-span-2 space-y-6">
                 <!-- Status & Info -->
@@ -217,15 +218,13 @@ $fotocopy = $result_fotocopy->num_rows > 0 ? $result_fotocopy->fetch_assoc() : n
                 <?php endif; ?>
             </div>
         </div>
+        </div><!-- End printArea -->
     </div>
     
     <!-- Print Styles -->
     <style media="print">
-        body * {
+        * {
             visibility: hidden;
-        }
-        .ml-64 {
-            margin-left: 0 !important;
         }
         #printArea, #printArea * {
             visibility: visible;
@@ -235,6 +234,16 @@ $fotocopy = $result_fotocopy->num_rows > 0 ? $result_fotocopy->fetch_assoc() : n
             left: 0;
             top: 0;
             width: 100%;
+        }
+        body {
+            margin: 0;
+            padding: 20px;
+        }
+        .no-print {
+            display: none !important;
+        }
+        .ml-64 {
+            margin-left: 0 !important;
         }
     </style>
 </body>

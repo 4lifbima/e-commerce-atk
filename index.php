@@ -102,6 +102,7 @@ $flash = getFlash();
                     <a href="produk.php" class="text-gray-700 hover:text-[#400dd9] transition">Produk</a>
                     <a href="fotocopy.php" class="text-gray-700 hover:text-[#400dd9] transition">Layanan Fotocopy</a>
                     
+                    <?php if (isLoggedIn()): ?>
                     <a href="cart.php" class="relative text-gray-700 hover:text-[#400dd9] transition">
                         <i class="fas fa-shopping-cart text-xl"></i>
                         <?php if (getCartCount() > 0): ?>
@@ -110,6 +111,7 @@ $flash = getFlash();
                         </span>
                         <?php endif; ?>
                     </a>
+                    <?php endif; ?>
                     
                     <?php if (isLoggedIn()): ?>
                         <div class="relative group">
@@ -145,8 +147,8 @@ $flash = getFlash();
                 <a href="index.php" class="block text-gray-700 hover:text-[#400dd9]">Beranda</a>
                 <a href="produk.php" class="block text-gray-700 hover:text-[#400dd9]">Produk</a>
                 <a href="fotocopy.php" class="block text-gray-700 hover:text-[#400dd9]">Layanan Fotocopy</a>
-                <a href="cart.php" class="block text-gray-700 hover:text-[#400dd9]">Keranjang (<?= getCartCount() ?>)</a>
                 <?php if (isLoggedIn()): ?>
+                <a href="cart.php" class="block text-gray-700 hover:text-[#400dd9]">Keranjang (<?= getCartCount() ?>)</a>
                     <?php if (isAdmin()): ?>
                     <a href="admin/dashboard.php" class="block text-gray-700 hover:text-[#400dd9]">Dashboard Admin</a>
                     <?php else: ?>
@@ -191,10 +193,17 @@ $flash = getFlash();
                             <i class="fas fa-shopping-bag mr-2"></i>
                             Belanja Sekarang
                         </a>
+                        <?php if (isLoggedIn()): ?>
                         <a href="fotocopy.php" class="bg-white/10 backdrop-blur-xl border border-white/40 text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-[#400dd9] transition shadow-md">
                             <i class="fas fa-print mr-2"></i>
                             Pesan Fotocopy
                         </a>
+                        <?php else: ?>
+                        <a href="login.php" class="bg-white/10 backdrop-blur-xl border border-white/40 text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-[#400dd9] transition shadow-md">
+                            <i class="fas fa-print mr-2"></i>
+                          Pesan Fotocopy
+                        </a>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -291,6 +300,7 @@ $flash = getFlash();
                             <a href="detail-produk.php?id=<?= $produk['id'] ?>" class="flex-1 bg-[#400dd9] text-white text-center py-2 rounded-lg hover:bg-[#350ba1] transition">
                                 Detail
                             </a>
+                            <?php if (isLoggedIn()): ?>
                             <form method="POST" action="cart-action.php" class="flex-1">
                                 <input type="hidden" name="action" value="add">
                                 <input type="hidden" name="produk_id" value="<?= $produk['id'] ?>">
@@ -299,6 +309,11 @@ $flash = getFlash();
                                     <i class="fas fa-cart-plus"></i>
                                 </button>
                             </form>
+                            <?php else: ?>
+                            <button onclick="window.location.href='login.php'" class="flex-1 bg-white border-2 border-[#400dd9] text-[#400dd9] py-2 rounded-lg hover:bg-blue-50 transition">
+                                <i class="fas fa-cart-plus"></i>
+                            </button>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>

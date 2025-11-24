@@ -190,7 +190,12 @@ toko-atk-fotocopy/
 6. **Login Admin**
    - URL: `http://localhost/toko-atk-fotocopy/login.php`
    - Email: `admin@tokofotocopy.com`
-   - Password: `admin123`
+   - Password: `admin`
+
+7. **Login User**
+   - URL: `http://localhost/toko-atk-fotocopy/login.php`
+   - Email: `alif@gmail.com`
+   - Password: `alifbima`
 
 ## 🔑 Akun Demo
 

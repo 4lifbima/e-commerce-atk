@@ -62,6 +62,7 @@ $flash = getFlash();
                     <a href="produk.php" class="text-gray-700 hover:text-[#400dd9] transition">Produk</a>
                     <a href="fotocopy.php" class="text-gray-700 hover:text-[#400dd9] transition">Layanan Fotocopy</a>
                     
+                    <?php if (isLoggedIn()): ?>
                     <a href="cart.php" class="relative text-gray-700 hover:text-[#400dd9] transition">
                         <i class="fas fa-shopping-cart text-xl"></i>
                         <?php if (getCartCount() > 0): ?>
@@ -70,6 +71,7 @@ $flash = getFlash();
                         </span>
                         <?php endif; ?>
                     </a>
+                    <?php endif; ?>
                     
                     <?php if (isLoggedIn()): ?>
                         <div class="relative group">
@@ -105,8 +107,8 @@ $flash = getFlash();
                 <a href="index.php" class="block text-gray-700 hover:text-[#400dd9]">Beranda</a>
                 <a href="produk.php" class="block text-gray-700 hover:text-[#400dd9]">Produk</a>
                 <a href="fotocopy.php" class="block text-gray-700 hover:text-[#400dd9]">Layanan Fotocopy</a>
-                <a href="cart.php" class="block text-gray-700 hover:text-[#400dd9]">Keranjang (<?= getCartCount() ?>)</a>
                 <?php if (isLoggedIn()): ?>
+                <a href="cart.php" class="block text-gray-700 hover:text-[#400dd9]">Keranjang (<?= getCartCount() ?>)</a>
                     <?php if (isAdmin()): ?>
                     <a href="admin/dashboard.php" class="block text-gray-700 hover:text-[#400dd9]">Dashboard Admin</a>
                     <?php else: ?>
@@ -178,39 +180,55 @@ $flash = getFlash();
                 </div>
                 
                 <?php if ($produk['stok'] > 0): ?>
-                <form method="POST" action="cart-action.php" class="space-y-4">
-                    <input type="hidden" name="action" value="add">
-                    <input type="hidden" name="produk_id" value="<?= $produk['id'] ?>">
-                    
-                    <div>
-                        <label class="block text-gray-700 font-semibold mb-2">Jumlah:</label>
-                        <div class="flex items-center gap-4">
-                            <button type="button" onclick="decreaseQty()" class="bg-gray-200 text-gray-700 w-10 h-10 rounded-lg hover:bg-gray-300 transition">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <input 
-                                type="number" 
-                                id="jumlah" 
-                                name="jumlah" 
-                                value="1" 
-                                min="1" 
-                                max="<?= $produk['stok'] ?>"
-                                class="w-20 text-center px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-                            >
-                            <button type="button" onclick="increaseQty()" class="bg-gray-200 text-gray-700 w-10 h-10 rounded-lg hover:bg-gray-300 transition">
-                                <i class="fas fa-plus"></i>
-                            </button>
+                    <?php if (isLoggedIn()): ?>
+                    <form method="POST" action="cart-action.php" class="space-y-4">
+                        <input type="hidden" name="action" value="add">
+                        <input type="hidden" name="produk_id" value="<?= $produk['id'] ?>">
+                        
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">Jumlah:</label>
+                            <div class="flex items-center gap-4">
+                                <button type="button" onclick="decreaseQty()" class="bg-gray-200 text-gray-700 w-10 h-10 rounded-lg hover:bg-gray-300 transition">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input 
+                                    type="number" 
+                                    id="jumlah" 
+                                    name="jumlah" 
+                                    value="1" 
+                                    min="1" 
+                                    max="<?= $produk['stok'] ?>"
+                                    class="w-20 text-center px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                >
+                                <button type="button" onclick="increaseQty()" class="bg-gray-200 text-gray-700 w-10 h-10 rounded-lg hover:bg-gray-300 transition">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
                         </div>
+                        
+                        <button 
+                            type="submit"
+                            class="w-full bg-[#400dd9] text-white py-4 rounded-xl font-bold text-lg hover:shadow-2xl transition"
+                        >
+                            <i class="fas fa-cart-plus mr-2"></i>
+                            Tambah ke Keranjang
+                        </button>
+                    </form>
+                    <?php else: ?>
+                    <div class="space-y-4">
+                        <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded-lg">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Silakan login terlebih dahulu untuk menambahkan produk ke keranjang
+                        </div>
+                        <button 
+                            onclick="window.location.href='login.php'"
+                            class="w-full bg-[#400dd9] text-white py-4 rounded-xl font-bold text-lg hover:shadow-2xl transition"
+                        >
+                            <i class="fas fa-sign-in-alt mr-2"></i>
+                            Login untuk Berbelanja
+                        </button>
                     </div>
-                    
-                    <button 
-                        type="submit"
-                        class="w-full bg-[#400dd9] text-white py-4 rounded-xl font-bold text-lg hover:shadow-2xl transition"
-                    >
-                        <i class="fas fa-cart-plus mr-2"></i>
-                        Tambah ke Keranjang
-                    </button>
-                </form>
+                    <?php endif; ?>
                 <?php else: ?>
                 <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
                     <i class="fas fa-exclamation-circle mr-2"></i>

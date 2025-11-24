@@ -58,6 +58,9 @@ $db->begin_transaction();
 
 try {
     // 1. Insert pesanan
+    $kupon_id_sql = $kupon_id ? $kupon_id : 'NULL';
+    $kode_kupon_sql = $kode_kupon ? $kode_kupon : 'NULL';
+    
     $query_pesanan = "INSERT INTO pesanan (
         user_id, 
         kode_pesanan, 
@@ -65,7 +68,10 @@ try {
         email_customer, 
         telepon_customer, 
         alamat_pengiriman, 
-        total_harga, 
+        total_harga,
+        kupon_id,
+        kode_kupon,
+        nilai_diskon,
         metode_pembayaran, 
         status, 
         catatan
@@ -77,6 +83,9 @@ try {
         '$telepon',
         '$alamat',
         $total_harga,
+        $kupon_id_sql,
+        $kode_kupon_sql,
+        $nilai_diskon,
         '$metode_pembayaran',
         'Pending',
         '$catatan'
@@ -133,6 +142,7 @@ try {
     }
     
     // 3. Insert ke keuangan (pemasukan otomatis)
+    // Gunakan total setelah diskon untuk keuangan
     $query_keuangan = "INSERT INTO keuangan (
         jenis, 
         kategori, 
@@ -144,7 +154,7 @@ try {
         'Pemasukan',
         'Penjualan ATK',
         'Penjualan produk - Order $kode_pesanan',
-        $total_harga,
+        $total_setelah_diskon,
         CURRENT_DATE(),
         $pesanan_id
     )";
@@ -160,7 +170,11 @@ try {
     clearCart();
     
     // Set success message
-    setFlash('success', 'Pesanan berhasil dibuat! Kode pesanan: ' . $kode_pesanan);
+    $success_msg = 'Pesanan berhasil dibuat! Kode pesanan: ' . $kode_pesanan;
+    if ($nilai_diskon > 0) {
+        $success_msg .= ' (Hemat Rp ' . number_format($nilai_diskon, 0, ',', '.') . ' dengan kupon!)';
+    }
+    setFlash('success', $success_msg);
     
     // Redirect ke invoice
     header("Location: invoice.php?kode=$kode_pesanan");
