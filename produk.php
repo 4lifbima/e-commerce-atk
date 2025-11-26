@@ -93,9 +93,8 @@ $flash = getFlash();
                 <div class="hidden md:flex items-center space-x-6">
                     <a href="index.php" class="text-gray-700 hover:text-[#400dd9] transition">Beranda</a>
                     <a href="produk.php" class="text-[#400dd9] transition">Produk</a>
-                    <a href="fotocopy.php" class="text-gray-700 hover:text-[#400dd9] transition">Layanan Fotocopy</a>
-                    
                     <?php if (isLoggedIn()): ?>
+                    <a href="fotocopy.php" class="text-gray-700 hover:text-[#400dd9] transition">Layanan Fotocopy</a>
                     <a href="cart.php" class="relative text-gray-700 hover:text-[#400dd9] transition">
                         <i class="fas fa-shopping-cart text-xl"></i>
                         <?php if (getCartCount() > 0): ?>
@@ -139,8 +138,8 @@ $flash = getFlash();
             <div class="px-4 py-3 space-y-3">
                 <a href="index.php" class="block text-gray-700 hover:text-[#400dd9]">Beranda</a>
                 <a href="produk.php" class="block text-[#400dd9]">Produk</a>
-                <a href="fotocopy.php" class="block text-gray-700 hover:text-[#400dd9]">Layanan Fotocopy</a>
                 <?php if (isLoggedIn()): ?>
+                <a href="fotocopy.php" class="block text-gray-700 hover:text-[#400dd9]">Layanan Fotocopy</a>
                 <a href="cart.php" class="block text-gray-700 hover:text-[#400dd9]">Keranjang (<?= getCartCount() ?>)</a>
                     <?php if (isAdmin()): ?>
                     <a href="admin/dashboard.php" class="block text-gray-700 hover:text-[#400dd9]">Dashboard Admin</a>

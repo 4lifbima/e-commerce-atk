@@ -54,6 +54,12 @@ $query_total_belanja = "SELECT COALESCE(SUM(total_harga), 0) as total
                         AND status != 'Dibatalkan'";
 $total_belanja = $db->query($query_total_belanja)->fetch_assoc()['total'];
 
+// NEW: Get current user points
+$query_poin = "SELECT poin FROM users WHERE id = $user_id";
+// Asumsi kolom 'poin' ada di tabel 'users' dan dapat bernilai NULL
+$user_poin = $db->query($query_poin)->fetch_assoc()['poin'] ?? 0;
+
+
 $flash = getFlash();
 ?>
 <!DOCTYPE html>
@@ -90,6 +96,7 @@ $flash = getFlash();
                 <div class="hidden md:flex items-center space-x-6">
                     <a href="index.php" class="text-gray-700 hover:text-purple-600 transition">Beranda</a>
                     <a href="produk.php" class="text-gray-700 hover:text-purple-600 transition">Produk</a>
+                    <a href="fotocopy.php" class="text-gray-700 hover:text-purple-600 transition">Layanan Fotocopy</a>
                     <a href="cart.php" class="relative text-gray-700 hover:text-purple-600 transition">
                         <i class="fas fa-shopping-cart text-xl"></i>
                         <?php if (getCartCount() > 0): ?>
@@ -108,6 +115,9 @@ $flash = getFlash();
                         <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
                             <a href="pesanan-saya.php" class="block px-4 py-2 text-purple-600 bg-purple-50 font-semibold">
                                 <i class="fas fa-shopping-bag mr-2"></i>Pesanan Saya
+                            </a>
+                            <a href="hadiah.php" class="block px-4 py-2 text-gray-700 hover:bg-purple-50">
+                                <i class="fas fa-gift mr-2"></i>Tukar Hadiah
                             </a>
                             <a href="logout.php" class="block px-4 py-2 text-red-600 hover:bg-red-50">
                                 <i class="fas fa-sign-out-alt mr-2"></i>Logout
@@ -130,6 +140,7 @@ $flash = getFlash();
                 <a href="produk.php" class="block text-gray-700">Produk</a>
                 <a href="cart.php" class="block text-gray-700">Keranjang (<?= getCartCount() ?>)</a>
                 <a href="pesanan-saya.php" class="block text-purple-600 font-semibold">Pesanan Saya</a>
+                <a href="hadiah.php" class="block text-gray-700">Tukar Hadiah</a>
                 <a href="logout.php" class="block text-red-600">Logout</a>
             </div>
         </div>
@@ -144,21 +155,38 @@ $flash = getFlash();
     </div>
     <?php endif; ?>
     
-    <!-- Header -->
+    <!-- Header with Stats -->
     <div class="bg-[#400dd9] text-white py-12">
         <div class="max-w-7xl mx-auto px-4">
-            <div class="flex items-center justify-between">
-                <div>
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div class="w-full md:w-auto">
                     <h1 class="text-4xl font-bold mb-2">
                         <i class="fas fa-shopping-bag mr-2"></i>
                         Pesanan Saya
                     </h1>
                     <p class="text-purple-100">Kelola dan lacak pesanan Anda</p>
                 </div>
-                <div class="hidden md:block">
-                    <div class="bg-white/20 rounded-2xl p-4">
+                
+                <!-- Cards for Belanja and Poin (Responsive) -->
+                <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto pt-4 md:pt-0">
+                    <!-- Total Belanja Card (Original) -->
+                    <div class="bg-white/20 rounded-2xl p-4 flex-1 min-w-[180px] hover:bg-white/30 transition duration-300">
                         <p class="text-sm text-purple-100 mb-1">Total Belanja</p>
                         <p class="text-2xl font-bold">Rp <?= number_format($total_belanja, 0, ',', '.') ?></p>
+                    </div>
+                    
+                    <!-- Total Poin Card (New) -->
+                    <div class="bg-white/20 rounded-2xl p-4 flex-1 min-w-[180px] hover:bg-white/30 transition duration-300">
+                        <p class="text-sm text-purple-100 mb-1">Poin Saya</p>
+                        <div class="flex items-center justify-between">
+                            <p class="text-2xl font-bold flex items-center gap-2">
+                                <?= number_format($user_poin, 0, ',', '.') ?>
+                                <i class="fas fa-medal text-yellow-300"></i>
+                            </p>
+                            <a href="hadiah.php" class="text-sm font-semibold text-white hover:text-yellow-300 transition underline">
+                                Tukar Poin
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -224,8 +252,8 @@ $flash = getFlash();
                     // Get detail produk untuk pesanan ini
                     $pesanan_id = $pesanan['id'];
                     $query_detail = "SELECT dp.*, p.foto FROM detail_pesanan dp 
-                                    LEFT JOIN produk p ON dp.produk_id = p.id
-                                    WHERE dp.pesanan_id = $pesanan_id LIMIT 3";
+                                     LEFT JOIN produk p ON dp.produk_id = p.id
+                                     WHERE dp.pesanan_id = $pesanan_id LIMIT 3";
                     $detail = $db->query($query_detail);
                     
                     // Cek apakah ada fotocopy
@@ -233,7 +261,7 @@ $flash = getFlash();
                     $has_fotocopy = $db->query($query_fc)->num_rows > 0;
                     
                     // Total item
-                    $query_count = "SELECT SUM(jumlah) as total FROM detail_pesanan WHERE pesanan_id = $pesanan_id";
+                    $query_count = "SELECT COALESCE(SUM(jumlah), 0) as total FROM detail_pesanan WHERE pesanan_id = $pesanan_id";
                     $total_items = $db->query($query_count)->fetch_assoc()['total'] ?? 0;
                     ?>
                     
@@ -290,9 +318,14 @@ $flash = getFlash();
                                         </div>
                                         <?php endwhile; ?>
                                         
-                                        <?php if ($total_items > 3): ?>
+                                        <?php 
+                                        // Reset pointer for detail query
+                                        $detail->data_seek(0);
+                                        $rows_displayed = $detail->num_rows;
+                                        if ($total_items > $rows_displayed): 
+                                        ?>
                                         <p class="text-sm text-gray-600 text-center py-2">
-                                            +<?= $total_items - 3 ?> item lainnya
+                                            +<?= $total_items - $rows_displayed ?> item lainnya
                                         </p>
                                         <?php endif; ?>
                                     </div>
@@ -326,6 +359,10 @@ $flash = getFlash();
                                             <div class="flex items-center justify-between">
                                                 <span class="text-gray-600">Total Item:</span>
                                                 <span class="font-semibold"><?= $total_items ?> item</span>
+                                            </div>
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-gray-600">Poin Didapat:</span>
+                                                <span class="font-semibold text-green-600">+<?= number_format($pesanan['poin_didapat'] ?? 0, 0, ',', '.') ?></span>
                                             </div>
                                         </div>
                                     </div>

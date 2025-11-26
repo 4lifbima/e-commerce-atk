@@ -87,12 +87,12 @@ if (!isset($activePage)) {
             <span>Order Fotocopy</span>
         </a>
 
-        <!-- Keuangan -->
-        <a href="keuangan.php"
+        <!-- Setting Point -->
+        <a href="setting-point.php"
            class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
-           <?= $activePage === 'keuangan' ? 'bg-blue-600' : 'hover:bg-blue-600' ?>">
-            <i class="fas fa-wallet w-5"></i>
-            <span>Keuangan</span>
+           <?= $activePage === 'setting-point' ? 'bg-blue-600' : 'hover:bg-blue-600' ?>">
+            <i class="fas fa-cog w-5"></i>
+            <span>Setting Point</span>
         </a>
 
         <!-- Laporan -->

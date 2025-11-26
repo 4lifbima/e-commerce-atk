@@ -1,6 +1,7 @@
 <?php
 /**
  * Admin - Detail Pesanan
+ * Dengan fitur notifikasi WhatsApp
  */
 
 require_once '../config/database.php';
@@ -33,6 +34,9 @@ $detail_produk = $db->query($query_detail);
 $query_fotocopy = "SELECT * FROM pesanan_fotocopy WHERE pesanan_id = $pesanan_id";
 $result_fotocopy = $db->query($query_fotocopy);
 $fotocopy = $result_fotocopy->num_rows > 0 ? $result_fotocopy->fetch_assoc() : null;
+
+// Get flash message
+$flash = getFlash();
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -67,6 +71,15 @@ $fotocopy = $result_fotocopy->num_rows > 0 ? $result_fotocopy->fetch_assoc() : n
             </div>
         </div>
         
+        <!-- Flash Message -->
+        <?php if ($flash): ?>
+        <div class="mb-6 no-print">
+            <div class="bg-<?= $flash['type'] === 'success' ? 'green' : ($flash['type'] === 'info' ? 'blue' : 'red') ?>-100 border border-<?= $flash['type'] === 'success' ? 'green' : ($flash['type'] === 'info' ? 'blue' : 'red') ?>-400 text-<?= $flash['type'] === 'success' ? 'green' : ($flash['type'] === 'info' ? 'blue' : 'red') ?>-700 px-4 py-3 rounded-lg">
+                <?= $flash['message'] ?>
+            </div>
+        </div>
+        <?php endif; ?>
+        
         <div id="printArea" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Info Pesanan -->
             <div class="lg:col-span-2 space-y-6">
@@ -98,6 +111,16 @@ $fotocopy = $result_fotocopy->num_rows > 0 ? $result_fotocopy->fetch_assoc() : n
                             <p class="font-bold text-xl text-purple-600">Rp <?= number_format($pesanan['total_harga'], 0, ',', '.') ?></p>
                         </div>
                     </div>
+                    
+                    <?php if ($pesanan['nilai_diskon'] > 0): ?>
+                    <div class="mt-4 p-3 bg-green-50 rounded-lg">
+                        <p class="text-sm text-green-700">
+                            <i class="fas fa-tag mr-2"></i>
+                            Menggunakan kupon: <strong><?= $pesanan['kode_kupon'] ?></strong> 
+                            (Hemat Rp <?= number_format($pesanan['nilai_diskon'], 0, ',', '.') ?>)
+                        </p>
+                    </div>
+                    <?php endif; ?>
                     
                     <?php if ($pesanan['catatan']): ?>
                     <div class="mt-4 p-4 bg-gray-50 rounded-lg">
@@ -172,8 +195,9 @@ $fotocopy = $result_fotocopy->num_rows > 0 ? $result_fotocopy->fetch_assoc() : n
                 <?php endif; ?>
             </div>
             
-            <!-- Info Customer -->
+            <!-- Info Customer & Actions -->
             <div class="space-y-6">
+                <!-- Info Customer -->
                 <div class="bg-white rounded-2xl shadow-lg p-6">
                     <h2 class="text-xl font-bold mb-4">Info Customer</h2>
                     <div class="space-y-3">
@@ -188,8 +212,14 @@ $fotocopy = $result_fotocopy->num_rows > 0 ? $result_fotocopy->fetch_assoc() : n
                         </div>
                         <?php endif; ?>
                         <div>
-                            <p class="text-sm text-gray-600">Telepon</p>
+                            <p class="text-sm text-gray-600">Telepon / WhatsApp</p>
                             <p class="font-semibold"><?= $pesanan['telepon_customer'] ?></p>
+                            <a href="https://wa.me/<?= preg_replace('/[^0-9]/', '', $pesanan['telepon_customer']) ?>?text=Halo%20<?= urlencode($pesanan['nama_customer']) ?>%2C%20terkait%20pesanan%20<?= $pesanan['kode_pesanan'] ?>" 
+                               target="_blank"
+                               class="inline-flex items-center mt-2 text-green-600 hover:text-green-700 text-sm">
+                                <i class="fab fa-whatsapp mr-1"></i>
+                                Chat WhatsApp
+                            </a>
                         </div>
                         <div>
                             <p class="text-sm text-gray-600">Alamat Pengiriman</p>
@@ -198,27 +228,82 @@ $fotocopy = $result_fotocopy->num_rows > 0 ? $result_fotocopy->fetch_assoc() : n
                     </div>
                 </div>
                 
-                <!-- Actions -->
+                <!-- Update Status -->
                 <?php if ($pesanan['status'] !== 'Selesai' && $pesanan['status'] !== 'Dibatalkan'): ?>
-                <div class="bg-white rounded-2xl shadow-lg p-6">
-                    <h2 class="text-xl font-bold mb-4">Update Status</h2>
-                    <form method="POST" action="pesanan-update.php">
+                <div class="bg-white rounded-2xl shadow-lg p-6 no-print">
+                    <h2 class="text-xl font-bold mb-4">
+                        <i class="fas fa-edit text-purple-600 mr-2"></i>
+                        Update Status
+                    </h2>
+                    <form method="POST" action="pesanan-update.php" onsubmit="return confirmUpdate()">
                         <input type="hidden" name="id" value="<?= $pesanan['id'] ?>">
-                        <select name="status" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 mb-4">
-                            <option value="Pending" <?= $pesanan['status'] === 'Pending' ? 'selected' : '' ?>>Pending</option>
-                            <option value="Diproses" <?= $pesanan['status'] === 'Diproses' ? 'selected' : '' ?>>Diproses</option>
-                            <option value="Selesai" <?= $pesanan['status'] === 'Selesai' ? 'selected' : '' ?>>Selesai</option>
-                            <option value="Dibatalkan" <?= $pesanan['status'] === 'Dibatalkan' ? 'selected' : '' ?>>Dibatalkan</option>
+                        <select name="status" id="status" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 mb-4">
+                            <option value="Pending" <?= $pesanan['status'] === 'Pending' ? 'selected' : '' ?>>⏳ Pending</option>
+                            <option value="Diproses" <?= $pesanan['status'] === 'Diproses' ? 'selected' : '' ?>>🔄 Diproses</option>
+                            <option value="Selesai" <?= $pesanan['status'] === 'Selesai' ? 'selected' : '' ?>>✅ Selesai</option>
+                            <option value="Dibatalkan" <?= $pesanan['status'] === 'Dibatalkan' ? 'selected' : '' ?>>❌ Dibatalkan</option>
                         </select>
                         <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-semibold hover:shadow-xl transition">
-                            Update Status
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            Update & Kirim Notifikasi WA
                         </button>
+                        <p class="text-xs text-gray-500 mt-2 text-center">
+                            <i class="fab fa-whatsapp text-green-600"></i>
+                            Customer akan otomatis menerima notifikasi WhatsApp
+                        </p>
                     </form>
                 </div>
                 <?php endif; ?>
+                
+                <!-- Kirim Pesan Custom -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 no-print">
+                    <h2 class="text-xl font-bold mb-4">
+                        <i class="fab fa-whatsapp text-green-600 mr-2"></i>
+                        Kirim Pesan WhatsApp
+                    </h2>
+                    <button onclick="showCustomMessageModal()" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition">
+                        <i class="fas fa-comment-dots mr-2"></i>
+                        Kirim Pesan Custom
+                    </button>
+                    
+                    <?php if ($pesanan['metode_pembayaran'] === 'Transfer' && $pesanan['status'] === 'Pending'): ?>
+                    <button onclick="sendReminder()" class="w-full mt-3 bg-yellow-600 text-white py-3 rounded-lg font-semibold hover:bg-yellow-700 transition">
+                        <i class="fas fa-bell mr-2"></i>
+                        Kirim Reminder Pembayaran
+                    </button>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
-        </div><!-- End printArea -->
+    </div>
+    
+    <!-- Modal Custom Message -->
+    <div id="customMessageModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 no-print">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-lg w-full mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">Kirim Pesan Custom</h3>
+                <button onclick="hideCustomMessageModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <form id="customMessageForm">
+                <textarea 
+                    id="customMessage" 
+                    rows="6" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 mb-4"
+                    placeholder="Ketik pesan Anda di sini...&#10;&#10;Contoh: Kak, untuk pesanan ini bisa diambil besok ya, karena stok baru datang."
+                ></textarea>
+                <div class="flex gap-3">
+                    <button type="button" onclick="hideCustomMessageModal()" class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition">
+                        Batal
+                    </button>
+                    <button type="submit" class="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition">
+                        <i class="fab fa-whatsapp mr-2"></i>
+                        Kirim
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
     
     <!-- Print Styles -->
@@ -246,5 +331,80 @@ $fotocopy = $result_fotocopy->num_rows > 0 ? $result_fotocopy->fetch_assoc() : n
             margin-left: 0 !important;
         }
     </style>
+    
+    <script>
+        function confirmUpdate() {
+            const status = document.getElementById('status').value;
+            return confirm(`Yakin ingin mengubah status pesanan menjadi "${status}"?\n\nCustomer akan menerima notifikasi WhatsApp otomatis.`);
+        }
+        
+        function showCustomMessageModal() {
+            document.getElementById('customMessageModal').classList.remove('hidden');
+            document.getElementById('customMessageModal').classList.add('flex');
+        }
+        
+        function hideCustomMessageModal() {
+            document.getElementById('customMessageModal').classList.add('hidden');
+            document.getElementById('customMessageModal').classList.remove('flex');
+            document.getElementById('customMessage').value = '';
+        }
+        
+        document.getElementById('customMessageForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const message = document.getElementById('customMessage').value.trim();
+            if (!message) {
+                alert('Pesan tidak boleh kosong!');
+                return;
+            }
+            
+            if (confirm('Kirim pesan ini ke customer via WhatsApp?')) {
+                try {
+                    const response = await fetch('pesanan-kirim-pesan.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `kode_pesanan=<?= $pesanan['kode_pesanan'] ?>&pesan=${encodeURIComponent(message)}`
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert('✅ ' + result.message);
+                        hideCustomMessageModal();
+                    } else {
+                        alert('❌ ' + result.message);
+                    }
+                } catch (error) {
+                    alert('❌ Terjadi kesalahan: ' + error.message);
+                }
+            }
+        });
+        
+        async function sendReminder() {
+            if (confirm('Kirim reminder pembayaran ke customer via WhatsApp?')) {
+                try {
+                    const response = await fetch('pesanan-kirim-reminder.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `kode_pesanan=<?= $pesanan['kode_pesanan'] ?>`
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert('✅ ' + result.message);
+                    } else {
+                        alert('❌ ' + result.message);
+                    }
+                } catch (error) {
+                    alert('❌ Terjadi kesalahan: ' + error.message);
+                }
+            }
+        }
+    </script>
 </body>
 </html>

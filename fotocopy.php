@@ -9,17 +9,6 @@ require_once 'config/session.php';
 
 $db = getDB();
 
-// Ambil data user jika sudah login
-$user_data = null;
-if (isLoggedIn()) {
-    $user_id = $_SESSION['user_id'];
-    $query_user = "SELECT * FROM users WHERE id = $user_id";
-    $result_user = $db->query($query_user);
-    if ($result_user && $result_user->num_rows > 0) {
-        $user_data = $result_user->fetch_assoc();
-    }
-}
-
 // Ambil data harga fotocopy
 $query_harga = "SELECT * FROM harga_fotocopy ORDER BY jenis_kertas, warna, bolak_balik";
 $harga_fotocopy = $db->query($query_harga);
@@ -167,22 +156,41 @@ $flash = getFlash();
         <div class="bg-white rounded-2xl shadow-2xl p-8">
             <form id="fotocopyForm" method="POST" action="fotocopy-process.php" enctype="multipart/form-data">
                 
-                <!-- Data Customer -->
-                <div class="mb-8">
-                    <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">
-                        <i class="fas fa-user text-purple-600 mr-2"></i>
-                        Data Pemesan
-                    </h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-gray-700 font-semibold mb-2">Nama Lengkap *</label>
-                            <input type="text" name="nama" required 
-                                   value="<?= isLoggedIn() ? $_SESSION['nama'] : '' ?>"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-semibold mb-2">Email</label>
-                            <input type="email" name="email" 
+            <!-- Data Customer -->
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">
+                    <i class="fas fa-user text-purple-600 mr-2"></i>
+                    Data Pemesan
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Nama Lengkap *</label>
+                        <input type="text" name="nama" required 
+                            value="<?= isLoggedIn() ? htmlspecialchars($_SESSION['nama']) : '' ?>"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600" disabled>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Email</label>
+                        <input type="email" name="email" 
+                            value="<?= isLoggedIn() ? htmlspecialchars($_SESSION['email']) : '' ?>"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600" disabled>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">No. Telepon *</label>
+                        <input type="tel" name="telepon" required 
+                value="<?= isLoggedIn() ? htmlspecialchars($_SESSION['telepon'] ?? '') : '' ?>"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                placeholder="Contoh: 081234567890">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Alamat *</label>
+                        <input type="text" name="alamat" required 
+                            value="<?= isLoggedIn() ? htmlspecialchars($_SESSION['alamat'] ?? '') : '' ?>"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                            placeholder="Contoh: Jl. Contoh No. 123, Kota Jakarta">
+                    </div>
+                </div>
+            </div>
                 
                 <!-- Spesifikasi Fotocopy -->
                 <div class="mb-8">
@@ -371,7 +379,10 @@ $flash = getFlash();
         
         // Function untuk format rupiah
         function formatRupiah(angka) {
-            return 'Rp ' + angka.toLocaleString('id-ID');
+            return 'Rp ' + parseFloat(angka).toLocaleString('id-ID', { 
+                minimumFractionDigits: 2, 
+                maximumFractionDigits: 2 
+            });
         }
         
                 // Mobile Menu Toggle

@@ -219,4 +219,27 @@ function getFlash() {
     }
     return null;
 }
+
+/**
+ * Set flash message (alias for setFlash)
+ * @param string $type (success, error, warning, info)
+ * @param string $message
+ */
+function setFlashMessage($type, $message) {
+    setFlash($type, $message);
+}
+
+/**
+ * Get flash message by type
+ * @param string $type The type of message to retrieve
+ * @return string|null The message or null if no message of that type exists
+ */
+function getFlashMessage($type) {
+    if (isset($_SESSION['flash']) && $_SESSION['flash']['type'] === $type) {
+        $message = $_SESSION['flash']['message'];
+        unset($_SESSION['flash']);
+        return $message;
+    }
+    return null;
+}
 ?>

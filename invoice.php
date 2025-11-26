@@ -98,7 +98,7 @@ $fotocopy = $result_fotocopy->num_rows > 0 ? $result_fotocopy->fetch_assoc() : n
                 <i class="fas fa-check-circle text-green-500 text-4xl mr-4"></i>
                 <div>
                     <h2 class="text-2xl font-bold text-green-800">Pesanan Berhasil Dibuat!</h2>
-                    <p class="text-green-700">Terima kasih atas pesanan Anda. Invoice telah dikirim ke email (jika tersedia).</p>
+                    <p class="text-green-700">Terima kasih atas pesanan Anda. Invoice telah dikirim ke nomor whatsapp Anda.</p>
                 </div>
             </div>
         </div>

@@ -1,11 +1,12 @@
 <?php
 /**
  * Checkout Process
- * Memproses pemesanan dan menyimpan ke database
+ * Memproses pemesanan, menyimpan ke database, dan mengirim notifikasi WhatsApp
  */
 
 require_once 'config/database.php';
 require_once 'config/session.php';
+require_once 'config/fonnte.php'; // Include konfigurasi Fonnte
 
 $db = getDB();
 $cart = getCart();
@@ -31,6 +32,21 @@ $alamat = escape($_POST['alamat']);
 $catatan = escape($_POST['catatan'] ?? '');
 $metode_pembayaran = escape($_POST['metode_pembayaran']);
 
+// Ambil data kupon jika ada
+$kupon_id = !empty($_POST['kupon_id']) ? intval($_POST['kupon_id']) : null;
+$nilai_diskon = !empty($_POST['nilai_diskon']) ? intval($_POST['nilai_diskon']) : 0;
+$kode_kupon = null;
+
+// Jika ada kupon, ambil kode kuponnya
+if ($kupon_id) {
+    $query_kupon = "SELECT kode_kupon FROM kupon WHERE id = $kupon_id";
+    $result_kupon = $db->query($query_kupon);
+    if ($result_kupon && $result_kupon->num_rows > 0) {
+        $row_kupon = $result_kupon->fetch_assoc();
+        $kode_kupon = $row_kupon['kode_kupon'];
+    }
+}
+
 // Validasi input
 if (empty($nama) || empty($telepon) || empty($alamat)) {
     setFlash('error', 'Data tidak lengkap! Nama, telepon, dan alamat wajib diisi.');
@@ -48,7 +64,8 @@ while ($db->query($check_query)->num_rows > 0) {
 }
 
 // Hitung total
-$total_harga = getCartTotal();
+$subtotal = getCartTotal();
+$total_setelah_diskon = $subtotal - $nilai_diskon;
 
 // User ID (jika login)
 $user_id = isLoggedIn() ? $_SESSION['user_id'] : 'NULL';
@@ -59,7 +76,7 @@ $db->begin_transaction();
 try {
     // 1. Insert pesanan
     $kupon_id_sql = $kupon_id ? $kupon_id : 'NULL';
-    $kode_kupon_sql = $kode_kupon ? $kode_kupon : 'NULL';
+    $kode_kupon_sql = $kode_kupon ? "'$kode_kupon'" : 'NULL';
     
     $query_pesanan = "INSERT INTO pesanan (
         user_id, 
@@ -82,7 +99,7 @@ try {
         '$email',
         '$telepon',
         '$alamat',
-        $total_harga,
+        $total_setelah_diskon,
         $kupon_id_sql,
         $kode_kupon_sql,
         $nilai_diskon,
@@ -141,8 +158,13 @@ try {
         }
     }
     
-    // 3. Insert ke keuangan (pemasukan otomatis)
-    // Gunakan total setelah diskon untuk keuangan
+    // 3. Update penggunaan kupon jika ada
+    if ($kupon_id) {
+        $query_update_kupon = "UPDATE kupon SET kuota_terpakai = kuota_terpakai + 1 WHERE id = $kupon_id";
+        $db->query($query_update_kupon);
+    }
+    
+    // 4. Insert ke keuangan (pemasukan otomatis)
     $query_keuangan = "INSERT INTO keuangan (
         jenis, 
         kategori, 
@@ -166,6 +188,82 @@ try {
     // Commit transaction
     $db->commit();
     
+    // ========================================
+    // KIRIM NOTIFIKASI WHATSAPP
+    // ========================================
+    try {
+        // Siapkan data items untuk pesan
+        $items = [];
+        foreach ($cart as $item) {
+            $items[] = [
+                'nama' => $item['nama'],
+                'jumlah' => $item['jumlah'],
+                'harga' => $item['harga'],
+                'subtotal' => $item['harga'] * $item['jumlah']
+            ];
+        }
+        
+        // Data pesanan untuk notifikasi
+        $orderData = [
+            'no_pesanan' => $kode_pesanan,
+            'tanggal' => date('d/m/Y H:i'),
+            'status' => 'Pending',
+            'nama' => $nama,
+            'telepon' => $telepon,
+            'alamat' => $alamat,
+            'catatan' => $catatan,
+            'items' => $items,
+            'subtotal' => $subtotal,
+            'diskon' => $nilai_diskon,
+            'total' => $total_setelah_diskon,
+            'metode_pembayaran' => $metode_pembayaran
+        ];
+        
+        // Generate pesan WhatsApp
+        $message = generatePesanNotifikasiPesanan($orderData);
+        
+        // Format nomor WhatsApp
+        $whatsappNumber = formatWhatsAppNumber($telepon);
+        
+        // Kirim notifikasi WhatsApp
+        $waResult = kirimWhatsApp($whatsappNumber, $message);
+        
+        // Log hasil pengiriman (optional)
+        if ($waResult['success']) {
+            // Berhasil kirim WA
+            $log_status = 'sent';
+            $log_response = isset($waResult['response']) ? json_encode($waResult['response']) : 'Success';
+        } else {
+            // Gagal kirim WA (tapi pesanan tetap tersimpan)
+            $log_status = 'failed';
+            $log_response = isset($waResult['error']) ? $waResult['error'] : 'Unknown error';
+        }
+        
+        // Simpan log notifikasi ke database (optional)
+        $query_log = "INSERT INTO notifikasi_log (
+            pesanan_id, 
+            tipe, 
+            nomor_tujuan, 
+            status, 
+            response, 
+            tanggal_kirim
+        ) VALUES (
+            $pesanan_id,
+            'whatsapp',
+            '$whatsappNumber',
+            '$log_status',
+            '" . escape($log_response) . "',
+            NOW()
+        )";
+        
+        $db->query($query_log); // Tidak perlu throw error jika log gagal
+        
+    } catch (Exception $e) {
+        // Jika gagal kirim WA, pesanan tetap berhasil
+        // Hanya log error saja
+        error_log("Gagal kirim WhatsApp untuk pesanan $kode_pesanan: " . $e->getMessage());
+    }
+    
     // Clear cart
     clearCart();
     
@@ -174,6 +272,12 @@ try {
     if ($nilai_diskon > 0) {
         $success_msg .= ' (Hemat Rp ' . number_format($nilai_diskon, 0, ',', '.') . ' dengan kupon!)';
     }
+    
+    // Tambah info WA jika berhasil terkirim
+    if (isset($waResult) && $waResult['success']) {
+        $success_msg .= ' Notifikasi telah dikirim ke WhatsApp Anda.';
+    }
+    
     setFlash('success', $success_msg);
     
     // Redirect ke invoice
