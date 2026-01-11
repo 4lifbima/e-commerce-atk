@@ -324,6 +324,7 @@ $flash = getFlash();
             <p>&copy; 2025 Copy&ATK Premium. All rights reserved.</p>
         </div>
     </footer>
+    <?php include 'components/chatbot-widget.php'; ?>
 </body>
 <script>
             // Mobile Menu Toggle

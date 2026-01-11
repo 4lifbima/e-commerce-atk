@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Nov 25, 2025 at 11:44 AM
+-- Generation Time: Dec 12, 2025 at 11:25 PM
 -- Server version: 8.0.30
 -- PHP Version: 8.3.25
 
@@ -116,6 +116,42 @@ CREATE TABLE `detail_pesanan` (
   `subtotal` decimal(12,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+--
+-- Dumping data for table `detail_pesanan`
+--
+
+INSERT INTO `detail_pesanan` (`id`, `pesanan_id`, `produk_id`, `nama_produk`, `harga`, `jumlah`, `subtotal`) VALUES
+(2, 2, 4, 'Stapler Kenko HD-50', '25000.00', 2, '50000.00'),
+(3, 3, 5, 'Lem', '50000.00', 1, '50000.00'),
+(6, 6, 5, 'Lem', '50000.00', 1, '50000.00');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `hadiah_poin`
+--
+
+CREATE TABLE `hadiah_poin` (
+  `id` int NOT NULL,
+  `nama_hadiah` varchar(255) NOT NULL,
+  `deskripsi` text,
+  `poin_dibutuhkan` int NOT NULL,
+  `stok` int NOT NULL DEFAULT '0',
+  `gambar_url` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `hadiah_poin`
+--
+
+INSERT INTO `hadiah_poin` (`id`, `nama_hadiah`, `deskripsi`, `poin_dibutuhkan`, `stok`, `gambar_url`, `created_at`, `updated_at`) VALUES
+(1, 'Diskon Rp 10.000', 'Voucher diskon senilai Rp 10.000 untuk pembelian berikutnya.', 100, 50, 'https://placehold.co/400x250/1e40af/ffffff?text=VOUCHER+10K', '2025-11-26 04:33:17', '2025-11-26 04:33:17'),
+(2, 'Penghapus Joyko Baru', 'Penghapus super bersih merek Joyko.', 50, 100, 'https://placehold.co/400x250/fcd34d/1f2937?text=ERASER', '2025-11-26 04:33:17', '2025-11-26 04:33:17'),
+(3, 'Tumbler Eksklusif', 'Tumbler premium dengan logo ATK-FoCo.', 500, 10, 'https://placehold.co/400x250/ef4444/ffffff?text=TUMBLER', '2025-11-26 04:33:17', '2025-11-26 04:33:17'),
+(4, 'Gratis Fotokopi 10 Lembar', 'Voucher gratis fotokopi 10 lembar (hitam-putih).', 2, 200, 'uploads/reward_1764882041_3791.jpg', '2025-11-26 04:33:17', '2025-12-05 05:41:44');
+
 -- --------------------------------------------------------
 
 --
@@ -184,6 +220,15 @@ CREATE TABLE `history_kupon` (
   `tgl_pakai` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+--
+-- Dumping data for table `history_kupon`
+--
+
+INSERT INTO `history_kupon` (`id`, `kupon_id`, `pesanan_id`, `user_id`, `kode_kupon`, `nilai_diskon_didapat`, `tgl_pakai`) VALUES
+(2, 1, 2, 2, 'WELCOME10', '5000.00', '2025-11-25 20:06:45'),
+(3, 1, 3, 2, 'WELCOME10', '5000.00', '2025-11-27 23:18:49'),
+(6, 1, 6, 2, 'WELCOME10', '5000.00', '2025-11-28 02:00:16');
+
 -- --------------------------------------------------------
 
 --
@@ -199,6 +244,13 @@ CREATE TABLE `history_poin` (
   `keterangan` text,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `history_poin`
+--
+
+INSERT INTO `history_poin` (`id`, `user_id`, `pesanan_id`, `jenis`, `jumlah_poin`, `keterangan`, `created_at`) VALUES
+(3, 2, NULL, 'Masuk', 4, 'Mendapat poin dari pembelian - Order ORD202511273071', '2025-11-27 18:00:16');
 
 -- --------------------------------------------------------
 
@@ -240,6 +292,15 @@ CREATE TABLE `keuangan` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+--
+-- Dumping data for table `keuangan`
+--
+
+INSERT INTO `keuangan` (`id`, `jenis`, `kategori`, `deskripsi`, `jumlah`, `tanggal`, `pesanan_id`, `created_at`) VALUES
+(1, 'Pemasukan', 'Penjualan ATK', 'Penjualan produk - Order ORD202511254881', '45000.00', '2025-11-25', 2, '2025-11-25 12:06:45'),
+(2, 'Pemasukan', 'Penjualan ATK', 'Penjualan produk - Order ORD202511271694', '45000.00', '2025-11-27', 3, '2025-11-27 15:18:49'),
+(5, 'Pemasukan', 'Penjualan ATK', 'Penjualan produk - Order ORD202511273071', '45000.00', '2025-11-28', 6, '2025-11-27 18:00:16');
+
 -- --------------------------------------------------------
 
 --
@@ -269,7 +330,7 @@ CREATE TABLE `kupon` (
 --
 
 INSERT INTO `kupon` (`id`, `kode_kupon`, `nama_kupon`, `deskripsi`, `jenis_diskon`, `nilai_diskon`, `min_pembelian`, `max_diskon`, `kuota`, `kuota_terpakai`, `tgl_mulai`, `tgl_selesai`, `status_aktif`, `created_at`, `updated_at`) VALUES
-(1, 'WELCOME10', 'Diskon 10% untuk Pelanggan Baru', 'Dapatkan diskon 10% untuk pembelian pertama', 'Persen', '10.00', '50000.00', '50000.00', 100, 0, '2025-01-01', '2025-12-31', 1, '2025-11-25 11:23:57', '2025-11-25 11:23:57'),
+(1, 'WELCOME10', 'Diskon 10% untuk Pelanggan Baru', 'Dapatkan diskon 10% untuk pembelian pertama', 'Persen', '10.00', '50000.00', '50000.00', 100, 6, '2025-01-01', '2025-12-31', 1, '2025-11-25 11:23:57', '2025-11-27 18:00:16'),
 (2, 'HEMAT20', 'Hemat 20% Belanja Minimal 100rb', 'Diskon 20% untuk belanja minimal Rp 100.000', 'Persen', '20.00', '100000.00', '100000.00', 50, 0, '2025-01-01', '2025-06-30', 1, '2025-11-25 11:23:57', '2025-11-25 11:23:57'),
 (3, 'GAJIAN25', 'Diskon 25% Akhir Bulan', 'Promo spesial akhir bulan diskon 25%', 'Persen', '25.00', '200000.00', '150000.00', NULL, 0, '2025-01-25', '2025-12-31', 1, '2025-11-25 11:23:57', '2025-11-25 11:23:57'),
 (4, 'POTONG50K', 'Potongan Langsung 50rb', 'Dapatkan potongan Rp 50.000 untuk belanja minimal Rp 300.000', 'Nominal', '50000.00', '300000.00', NULL, 30, 0, '2025-01-01', '2025-03-31', 1, '2025-11-25 11:23:57', '2025-11-25 11:23:57'),
@@ -290,6 +351,17 @@ CREATE TABLE `notifikasi_log` (
   `response` text,
   `tanggal_kirim` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `notifikasi_log`
+--
+
+INSERT INTO `notifikasi_log` (`id`, `pesanan_id`, `tipe`, `nomor_tujuan`, `status`, `response`, `tanggal_kirim`) VALUES
+(1, 2, 'whatsapp', '6282291383797', 'sent', '{\"detail\":\"success! message in queue\",\"id\":[132392808],\"process\":\"pending\",\"quota\":{\"6281254773240\":{\"details\":\"deduced from total quota\",\"quota\":995,\"remaining\":994,\"used\":1}},\"requestid\":236940788,\"status\":true,\"target\":[\"6282291383797\"]}', '2025-11-25 20:06:47'),
+(2, 2, '', '6282291383797', 'sent', '{\"detail\":\"success! message in queue\",\"id\":[132394365],\"process\":\"pending\",\"quota\":{\"6281254773240\":{\"details\":\"deduced from total quota\",\"quota\":994,\"remaining\":993,\"used\":1}},\"requestid\":236962986,\"status\":true,\"target\":[\"6282291383797\"]}', '2025-11-25 20:23:14'),
+(3, 2, '', '6282291383797', 'sent', '{\"detail\":\"success! message in queue\",\"id\":[132394559],\"process\":\"pending\",\"quota\":{\"6281254773240\":{\"details\":\"deduced from total quota\",\"quota\":993,\"remaining\":992,\"used\":1}},\"requestid\":236964257,\"status\":true,\"target\":[\"6282291383797\"]}', '2025-11-25 20:25:03'),
+(4, 3, 'whatsapp', '6282291383797', 'sent', '{\"detail\":\"success! message in queue\",\"id\":[132720082],\"process\":\"pending\",\"quota\":{\"6281254773240\":{\"details\":\"deduced from total quota\",\"quota\":990,\"remaining\":989,\"used\":1}},\"requestid\":241927286,\"status\":true,\"target\":[\"6282291383797\"]}', '2025-11-27 23:18:51'),
+(5, 6, 'whatsapp', '6282291383797', 'sent', '{\"detail\":\"success! message in queue\",\"id\":[132727662],\"process\":\"pending\",\"quota\":{\"6281254773240\":{\"details\":\"deduced from total quota\",\"quota\":989,\"remaining\":988,\"used\":1}},\"requestid\":242140101,\"status\":true,\"target\":[\"6282291383797\"]}', '2025-11-28 02:00:18');
 
 -- --------------------------------------------------------
 
@@ -313,8 +385,18 @@ CREATE TABLE `pesanan` (
   `status` enum('Pending','Diproses','Selesai','Dibatalkan') DEFAULT 'Pending',
   `catatan` text,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `poin_didapat` int DEFAULT '0' COMMENT 'Jumlah poin yang didapat dari pesanan ini'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `pesanan`
+--
+
+INSERT INTO `pesanan` (`id`, `user_id`, `kode_pesanan`, `nama_customer`, `email_customer`, `telepon_customer`, `alamat_pengiriman`, `total_harga`, `kupon_id`, `kode_kupon`, `nilai_diskon`, `metode_pembayaran`, `status`, `catatan`, `created_at`, `updated_at`, `poin_didapat`) VALUES
+(2, 2, 'ORD202511254881', 'Member', 'member@tokofotocopy.com', '082291383797', 'Jl. Nome Bungsu', '45000.00', 1, 'WELCOME10', '5000.00', 'COD', 'Selesai', '', '2025-11-25 12:06:45', '2025-11-25 12:25:02', 0),
+(3, 2, 'ORD202511271694', 'Member', 'member@tokofotocopy.com', '082291383797', 'Jl. Nome Bungsu', '45000.00', 1, 'WELCOME10', '5000.00', 'Transfer', 'Pending', '', '2025-11-27 15:18:49', '2025-11-27 15:18:49', 0),
+(6, 2, 'ORD202511273071', 'Member', 'member@tokofotocopy.com', '082291383797', 'Jl. Nome Bungsu', '45000.00', 1, 'WELCOME10', '5000.00', 'COD', 'Pending', '', '2025-11-27 18:00:16', '2025-11-27 18:00:16', 4);
 
 --
 -- Triggers `pesanan`
@@ -382,10 +464,11 @@ CREATE TABLE `produk` (
 --
 
 INSERT INTO `produk` (`id`, `kategori_id`, `nama_produk`, `deskripsi`, `harga_beli`, `harga`, `stok`, `foto`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 1, 'Pulpen Pilot G2', 'Pulpen gel premium dengan tinta halus', '0.00', '5000.00', 100, 'pulpen-pilot.jpg', 1, '2025-11-25 11:22:20', '2025-11-25 11:22:20'),
-(2, 1, 'Pensil 2B Faber Castell', 'Pensil grafit berkualitas tinggi', '0.00', '3000.00', 150, 'pensil-2b.jpg', 1, '2025-11-25 11:22:20', '2025-11-25 11:22:20'),
-(3, 2, 'Kertas HVS A4 70gr (1 Rim)', 'Kertas HVS putih 500 lembar', '0.00', '35000.00', 50, 'hvs-a4.jpg', 1, '2025-11-25 11:22:20', '2025-11-25 11:22:20'),
-(4, 3, 'Stapler Kenko HD-50', 'Stapler besar untuk kantor', '0.00', '25000.00', 30, 'stapler.jpg', 1, '2025-11-25 11:22:20', '2025-11-25 11:22:20');
+(1, 1, 'Pulpen Pilot G2', 'Pulpen gel premium dengan tinta halus', '1000.00', '5000.00', 100, 'pulpen-pilot.jpg', 1, '2025-11-25 11:22:20', '2025-11-27 18:15:20'),
+(2, 1, 'Pensil 2B Faber Castell', 'Pensil grafit berkualitas tinggi', '1500.00', '3000.00', 150, 'pensil-2b.jpg', 1, '2025-11-25 11:22:20', '2025-11-27 18:15:20'),
+(3, 2, 'Kertas HVS A4 70gr (1 Rim)', 'Kertas HVS putih 500 lembar', '25000.00', '35000.00', 50, 'hvs-a4.jpg', 1, '2025-11-25 11:22:20', '2025-11-27 18:15:20'),
+(4, 3, 'Stapler Kenko HD-50', 'Stapler besar untuk kantor', '15000.00', '25000.00', 28, 'stapler.jpg', 1, '2025-11-25 11:22:20', '2025-11-27 18:15:20'),
+(5, 3, 'Lem', 'Lem bening', '45000.00', '50000.00', 0, '1764135412_5596.png', 1, '2025-11-26 05:36:52', '2025-11-27 18:16:46');
 
 -- --------------------------------------------------------
 
@@ -451,7 +534,8 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `nama`, `email`, `password`, `role`, `telepon`, `poin`, `alamat`, `created_at`, `updated_at`) VALUES
 (1, 'Administrator', 'admin@tokofotocopy.com', '$2y$10$5Re9ZMNI.sNN2E.qFM/FQerg8jNDCps27v4r5CDi9uBw7icLbgYw6', 'admin', '081234567890', 0, NULL, '2025-11-25 11:22:20', '2025-11-25 11:30:04'),
-(2, 'Member', 'member@tokofotocopy.com', '$2y$10$NN/mm49KMmJL7W2Uy0OcVOuRjw1AHK9ig3.qPWszc29L5rI6ER4Yy', 'customer', '082291383797', 0, 'Jl. Nome Bungsu', '2025-11-25 11:33:35', '2025-11-25 11:33:35');
+(2, 'Member', 'member@tokofotocopy.com', '$2y$10$NN/mm49KMmJL7W2Uy0OcVOuRjw1AHK9ig3.qPWszc29L5rI6ER4Yy', 'customer', '082291383797', 4, 'Jl. Nome Bungsu', '2025-11-25 11:33:35', '2025-11-27 18:00:16'),
+(3, 'Tajuddin Abdillah', 'tajuddin@ung.ac.id', '$2y$10$1Ms1kjw5ZzSoOWs/beG9TuRE99JqkGC25BZOLUdp4tII2Tw/ALVRS', 'customer', '08124466687', 0, 'bulila, Kec. Telaga', '2025-11-26 05:49:14', '2025-11-26 05:49:14');
 
 -- --------------------------------------------------------
 
@@ -539,6 +623,12 @@ ALTER TABLE `detail_pesanan`
   ADD PRIMARY KEY (`id`),
   ADD KEY `pesanan_id` (`pesanan_id`),
   ADD KEY `produk_id` (`produk_id`);
+
+--
+-- Indexes for table `hadiah_poin`
+--
+ALTER TABLE `hadiah_poin`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `harga_fotocopy`
@@ -651,7 +741,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `detail_pesanan`
 --
 ALTER TABLE `detail_pesanan`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `hadiah_poin`
+--
+ALTER TABLE `hadiah_poin`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `harga_fotocopy`
@@ -669,13 +765,13 @@ ALTER TABLE `harga_jilid`
 -- AUTO_INCREMENT for table `history_kupon`
 --
 ALTER TABLE `history_kupon`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `history_poin`
 --
 ALTER TABLE `history_poin`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `kategori`
@@ -687,7 +783,7 @@ ALTER TABLE `kategori`
 -- AUTO_INCREMENT for table `keuangan`
 --
 ALTER TABLE `keuangan`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `kupon`
@@ -699,13 +795,13 @@ ALTER TABLE `kupon`
 -- AUTO_INCREMENT for table `notifikasi_log`
 --
 ALTER TABLE `notifikasi_log`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `pesanan`
 --
 ALTER TABLE `pesanan`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `pesanan_fotocopy`
@@ -717,7 +813,7 @@ ALTER TABLE `pesanan_fotocopy`
 -- AUTO_INCREMENT for table `produk`
 --
 ALTER TABLE `produk`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `riwayat_stok`
@@ -735,7 +831,7 @@ ALTER TABLE `setting_poin`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables

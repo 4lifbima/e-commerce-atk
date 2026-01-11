@@ -320,5 +320,6 @@ $flash = getFlash();
             }
         }
     </script>
+    <?php include 'components/chatbot-widget.php'; ?>
 </body>
 </html>

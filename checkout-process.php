@@ -185,6 +185,50 @@ try {
         throw new Exception('Gagal mencatat keuangan: ' . $db->error);
     }
     
+    // 5. Hitung dan tambahkan poin untuk user (jika login)
+    $poin_didapat = 0;
+    if (isLoggedIn()) {
+        // Ambil setting poin dari database
+        $query_setting_poin = "SELECT min_belanja_dapat_poin, jumlah_poin_didapat FROM setting_poin WHERE id = 1";
+        $result_setting = $db->query($query_setting_poin);
+        
+        if ($result_setting && $result_setting->num_rows > 0) {
+            $setting = $result_setting->fetch_assoc();
+            $min_belanja = (float)$setting['min_belanja_dapat_poin'];
+            $poin_per_kelipatan = (int)$setting['jumlah_poin_didapat'];
+            
+            // Hitung poin berdasarkan total belanja (setelah diskon)
+            // Poin dihitung dari kelipatan minimum belanja
+            if ($min_belanja > 0) {
+                $kelipatan = floor($total_setelah_diskon / $min_belanja);
+                $poin_didapat = $kelipatan * $poin_per_kelipatan;
+            }
+            
+            // Jika ada poin yang didapat, update ke database
+            if ($poin_didapat > 0) {
+                // Update poin user
+                $query_update_poin = "UPDATE users SET poin = COALESCE(poin, 0) + $poin_didapat WHERE id = $user_id";
+                if (!$db->query($query_update_poin)) {
+                    throw new Exception('Gagal menambahkan poin: ' . $db->error);
+                }
+                
+                // Insert ke history_poin untuk tracking
+                $keterangan = "Mendapat poin dari pembelian - Order $kode_pesanan";
+                $jenis_masuk = 'masuk';
+                $query_history_poin = "INSERT INTO history_poin (user_id, jumlah_poin, jenis, keterangan) 
+                                       VALUES ($user_id, $poin_didapat, '$jenis_masuk', '" . escape($keterangan) . "')";
+                
+                if (!$db->query($query_history_poin)) {
+                    throw new Exception('Gagal mencatat history poin: ' . $db->error);
+                }
+                
+                // Update kolom poin_didapat di tabel pesanan
+                $query_update_pesanan_poin = "UPDATE pesanan SET poin_didapat = $poin_didapat WHERE id = $pesanan_id";
+                $db->query($query_update_pesanan_poin);
+            }
+        }
+    }
+    
     // Commit transaction
     $db->commit();
     
@@ -271,6 +315,11 @@ try {
     $success_msg = 'Pesanan berhasil dibuat! Kode pesanan: ' . $kode_pesanan;
     if ($nilai_diskon > 0) {
         $success_msg .= ' (Hemat Rp ' . number_format($nilai_diskon, 0, ',', '.') . ' dengan kupon!)';
+    }
+    
+    // Tambah info poin jika dapat poin
+    if ($poin_didapat > 0) {
+        $success_msg .= ' Selamat! Anda mendapat ' . $poin_didapat . ' poin!';
     }
     
     // Tambah info WA jika berhasil terkirim

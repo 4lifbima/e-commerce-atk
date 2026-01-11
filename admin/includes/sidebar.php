@@ -65,6 +65,14 @@ if (!isset($activePage)) {
             <span>Kategori</span>
         </a>
 
+        <!-- POS -->
+        <a href="pos.php"
+           class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+           <?= $activePage === 'pos' ? 'bg-blue-600' : 'hover:bg-blue-600' ?>">
+            <i class="fas fa-cash-register w-5"></i>
+            <span>Point of Sale (POS)</span>
+        </a>
+
         <!-- Pesanan -->
         <a href="pesanan.php"
            class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
@@ -93,6 +101,14 @@ if (!isset($activePage)) {
            <?= $activePage === 'setting-point' ? 'bg-blue-600' : 'hover:bg-blue-600' ?>">
             <i class="fas fa-cog w-5"></i>
             <span>Setting Point</span>
+        </a>
+
+        <!-- Kelola Hadiah -->
+        <a href="hadiah-poin.php"
+           class="flex items-center space-x-3 px-4 py-3 rounded-lg transition
+           <?= $activePage === 'hadiah-poin' ? 'bg-blue-600' : 'hover:bg-blue-600' ?>">
+            <i class="fas fa-gift w-5"></i>
+            <span>Kelola Hadiah</span>
         </a>
 
         <!-- Laporan -->

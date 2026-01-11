@@ -436,5 +436,6 @@ $flash = getFlash();
             mobileMenu.classList.toggle('hidden');
         });
     </script>
+    <?php include 'components/chatbot-widget.php'; ?>
 </body>
 </html>

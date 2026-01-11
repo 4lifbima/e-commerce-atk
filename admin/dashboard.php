@@ -74,7 +74,7 @@ switch ($filter_profit) {
                          FROM detail_pesanan dp
                          JOIN produk p ON dp.produk_id = p.id
                          JOIN pesanan ps ON dp.pesanan_id = ps.id
-                         WHERE ps.status = 'Selesai'
+                         WHERE ps.status != 'Dibatalkan'
                          GROUP BY p.id, p.nama_produk
                          ORDER BY profit DESC LIMIT 10";
         break;
@@ -86,7 +86,7 @@ switch ($filter_profit) {
                          FROM detail_pesanan dp
                          JOIN produk p ON dp.produk_id = p.id
                          JOIN pesanan ps ON dp.pesanan_id = ps.id
-                         WHERE ps.status = 'Selesai'
+                         WHERE ps.status != 'Dibatalkan'
                          AND MONTH(ps.created_at) = MONTH(CURRENT_DATE())
                          AND YEAR(ps.created_at) = YEAR(CURRENT_DATE())
                          GROUP BY WEEK(ps.created_at)";
@@ -101,7 +101,7 @@ switch ($filter_profit) {
                          FROM detail_pesanan dp
                          JOIN produk p ON dp.produk_id = p.id
                          JOIN pesanan ps ON dp.pesanan_id = ps.id
-                         WHERE ps.status = 'Selesai'";
+                         WHERE ps.status != 'Dibatalkan'";
         break;
 }
 

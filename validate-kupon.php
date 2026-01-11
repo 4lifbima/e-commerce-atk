@@ -59,11 +59,9 @@ try {
         echo json_encode([
             'success' => true,
             'message' => $data['message'],
-            'data' => [
-                'kupon_id' => $data['kupon_id'],
-                'kode_kupon' => $kode_kupon,
-                'nilai_diskon' => (float)$data['nilai_diskon']
-            ]
+            'kupon_id' => (int)$data['kupon_id'],
+            'kode_kupon' => $kode_kupon,
+            'nilai_diskon' => (float)$data['nilai_diskon']
         ]);
     } else {
         echo json_encode([
